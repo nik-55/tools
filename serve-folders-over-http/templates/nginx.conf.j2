@@ -1,0 +1,36 @@
+# {{ generated }}
+
+server {
+    listen 80;
+    server_name _;
+
+    charset utf-8;
+    sendfile on;
+    tcp_nopush on;
+    server_tokens off;
+
+    # Dotfiles are never served, even by direct URL.
+    location ~ /\. {
+        return 404;
+    }
+
+{% for share in shares %}
+    # {{ share.name }} -> {{ share.path }}
+    location = /{{ share.slug }} {
+        return 301 /{{ share.slug }}/;
+    }
+
+    location /{{ share.slug }}/ {
+        alias /srv/{{ share.name }}/;
+        # Always list the directory, even if it holds an index.html.
+        index index.does-not-exist;
+        autoindex on;
+        autoindex_localtime on;
+        add_header X-Robots-Tag "noindex, nofollow" always;
+    }
+
+{% endfor %}
+    location / {
+        return 404;
+    }
+}
